@@ -5,7 +5,7 @@
 
 import mysql.connector
 import mysql.connector.cursor
-from mysql.connector import errors, errorcode
+from mysql.connector import errorcode
 import asyncio
 from functools import partial
 

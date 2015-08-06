@@ -32,3 +32,51 @@ class TestAsyncConnection(unittest.TestCase):
             self.assertFalse(cnx.in_transaction)
 
         yield from pool.shutdown()
+
+    @asyncio_test
+    def test_disconnect(self, loop=None):
+        pool = AsyncConnectionPool(size=1, loop=loop, **MYSQL_CONFIG)
+
+        cnx = yield from pool.get()
+        self.assertTrue((yield from cnx.is_connected()))
+
+        cursor = yield from cnx.async_cursor()
+        self.assertIsNotNone(cursor)
+
+        # close connection
+        yield from cnx.close()
+        pool.release(cnx)
+
+        # must be disconnected
+        cnx2 = yield from pool.get()
+        self.assertFalse((yield from cnx2.is_connected()))
+
+        # the same as previous one
+        self.assertIs(cnx, cnx2)
+
+        cursor = yield from cnx.async_cursor()
+        self.assertIsNotNone(cursor)
+        # now must be connected
+        self.assertTrue((yield from cnx2.is_connected()))
+
+        # now test reconnection in the transaction
+        yield from cnx2.close()
+        yield from cnx2.start_transaction()
+        self.assertTrue((yield from cnx2.is_connected()))
+
+        yield from pool.shutdown()
+
+    @asyncio_test
+    def test_reconnect(self, loop=None):
+        pool = AsyncConnectionPool(loop=loop, **MYSQL_CONFIG)
+
+        cnx = yield from pool.get()
+        self.assertTrue((yield from cnx.is_connected()))
+
+        yield from cnx.close()
+        self.assertFalse((yield from cnx.is_connected()))
+
+        yield from cnx.reconnect()
+        self.assertTrue((yield from cnx.is_connected()))
+
+        yield from pool.shutdown()

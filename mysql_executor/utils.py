@@ -25,12 +25,12 @@ def async_reconnectable(method):
                     return method(self, *args, **kwargs)
             except (errors.InterfaceError, errors.OperationalError) as err:
                 if isinstance(err, errors.OperationalError) and \
-                   err.errno != -1:
+                   err.errno not in (-1, 2055):
                     raise
                 if attempts + 1 >= CONNECT_ATTEMPTS:
                     raise
                 log.warning(
-                    'Can not %s. %r. Try reconnect #%d.',
+                    'Connection missing in %s. %r. Try reconnect #%d.',
                     method.__name__, err, attempts + 1
                 )
                 yield from self.reconnect()

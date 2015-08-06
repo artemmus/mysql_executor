@@ -113,8 +113,8 @@ class AsyncMySQLConnection(mysql.connector.MySQLConnection):
 
         For example, to start a transaction with isolation level SERIALIZABLE,
         you would do the following:
-            >>> cnx = yield from mysql.connector.connect(..)
-            >>> yield from cnx.start_transaction(isolation_level='SERIALIZABLE')
+            >>> cn = yield from mysql.connector.connect(..)
+            >>> yield from cn.start_transaction(isolation_level='SERIALIZABLE')
 
         Raises ProgrammingError when a transaction is already in progress
         and when ValueError when isolation_level specifies an Unknown

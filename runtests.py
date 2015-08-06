@@ -5,6 +5,7 @@
 """
 
 import unittest
+import logging
 
 
 def load_tests(loader, tests, pattern):
@@ -12,4 +13,7 @@ def load_tests(loader, tests, pattern):
 
 
 if __name__ == '__main__':
+    log = logging.getLogger('mysql_executor')
+    log.setLevel(logging.ERROR)
+
     unittest.main()

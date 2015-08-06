@@ -25,7 +25,10 @@ class TestAsyncPool(unittest.TestCase):
             cnx = yield from pool.get()
             conn.append(cnx)
             self.assertEqual(pool.free_count, i)
-            self.assertTrue((yield from cnx.is_connected()))
+
+            connected = yield from cnx.is_connected()
+            self.assertIsInstance(connected, bool)
+            self.assertTrue(connected)
 
         for i, cnx in enumerate(conn, start=1):
             pool.release(cnx)

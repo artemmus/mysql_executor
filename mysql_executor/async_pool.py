@@ -15,6 +15,16 @@ __all__ = ['AsyncConnectionPool']
 
 
 class AsyncConnectionPool:
+    """Object manages asynchronous connections.
+
+    :param int size: size (number of connection) of the pool.
+    :param float queue_timeout: time out when client is waiting connection
+        from pool
+    :param loop: event loop, if not passed then default will be used
+    :param config: MySql connection config see
+        `doc. <http://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html>`_
+    :raise ValueError: if the `size` is inappropriate
+    """
     def __init__(self, size=1, queue_timeout=15.0, *, loop=None, **config):
         assert size > 0, 'DBPool.size must be greater than 0'
         if size < 1:
@@ -33,28 +43,56 @@ class AsyncConnectionPool:
 
     @property
     def queue_timeout(self):
+        """Number of seconds to wait a connection from the pool,
+        before TimeoutError occurred
+
+        :rtype: float
+        """
         return self._queue_timeout
 
     @queue_timeout.setter
     def queue_timeout(self, value):
+        """Sets a timeout for :attr:`queue_timeout`
+
+        :param float value: number of seconds
+        """
         if not isinstance(value, (float, int)):
             raise ValueError('Float or integer type expected')
         self._queue_timeout = value
 
     @property
     def size(self):
+        """Size of pool
+
+        :rtype: int
+        """
         return self._size
 
     def __len__(self):
+        """Number of allocated pool's slots
+
+        :rtype: int
+        """
         return len(self._pool)
 
     @property
     def free_count(self):
+        """Number of free pool's slots
+
+        :rtype: int
+        """
         return self.size - len(self._busy_items)
 
     @asyncio.coroutine
     def get(self):
-        """Coroutine. Creates and return connection from pool.
+        """Coroutine. Returns an opened connection from pool.
+        If coroutine invoked when all connections have been issued, then
+        caller will blocked until some connection will be released.
+
+        Also, the class provides context manager for getting connection
+        and automatically freeing it. Example:
+        >>> with (yield from pool) as cnx:
+        >>>     ...
 
         :rtype: AsyncMySQLConnection
         :raise: concurrent.futures.TimeoutError()
@@ -99,6 +137,12 @@ class AsyncConnectionPool:
         return cnx
 
     def release(self, connection):
+        """Frees connection. After that the connection can be issued
+        by :func:`get`.
+
+        :param AsyncMySQLConnection connection: a connection received
+            from :func:`get`
+        """
         if len(self._pending_futures):
             f = self._pending_futures.popleft()
             f.set_result(connection)
