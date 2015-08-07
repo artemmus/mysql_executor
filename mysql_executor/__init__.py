@@ -2,8 +2,8 @@
 .. module:: mysql_executor
 .. moduleauthor:: Artem Mustafa <artemmus@yahoo.com>
 
-Non-blocking version of `mysql-python-connector
-<http://dev.mysql.com/doc/connector-python/en/index.html>`_
+Non-blocking version of `mysql-connector-python
+<http://dev.mysql.com/doc/connector-python/en/index.html>`_ for asyncio.
 """
 
 from .async_pool import AsyncConnectionPool
